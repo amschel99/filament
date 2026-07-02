@@ -1,0 +1,40 @@
+{
+  "_comment": "SINGLE SOURCE OF TRUTH for deployed fiber-scripts (CLAUDE.md rule 2). Filled in by Phase 1.2 deployment. Node config.yml files are RENDERED from this file — never hardcode a code_hash anywhere else. The testnet reference config shows each lock as a type_id dep PLUS a separate cell_dep for ckb_auth; replicate that structure exactly with the devnet tx hashes produced at deploy time. Values below are PLACEHOLDERS (all-zero) and MUST be replaced before any node starts.",
+  "network": "devnet",
+  "fnn_version": "v0.9.0-rc5",
+  "deployed_at": null,
+  "scripts": {
+    "funding_lock": {
+      "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "hash_type": "type",
+      "cell_deps": [
+        {
+          "_role": "funding-lock type_id dep",
+          "out_point": { "tx_hash": "0x00", "index": "0x0" },
+          "dep_type": "code"
+        },
+        {
+          "_role": "ckb_auth dep required by funding-lock",
+          "out_point": { "tx_hash": "0x00", "index": "0x0" },
+          "dep_type": "code"
+        }
+      ]
+    },
+    "commitment_lock": {
+      "code_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "hash_type": "type",
+      "cell_deps": [
+        {
+          "_role": "commitment-lock type_id dep",
+          "out_point": { "tx_hash": "0x00", "index": "0x0" },
+          "dep_type": "code"
+        },
+        {
+          "_role": "ckb_auth dep required by commitment-lock",
+          "out_point": { "tx_hash": "0x00", "index": "0x0" },
+          "dep_type": "code"
+        }
+      ]
+    }
+  }
+}

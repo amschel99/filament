@@ -1,0 +1,44 @@
+# fnn devnet config TEMPLATE — rendered per node by infra/scripts/render-config.sh.
+# Placeholders in {{...}} are substituted from scripts.json + per-node vars.
+# CLAUDE.md rule 6: when a field here is uncertain, the nervosnetwork/fiber repo's
+# config/ and tests/ dirs are ground truth — do NOT invent fields.
+
+services:
+  - fiber
+  - rpc
+  - ckb
+
+fiber:
+  # Path to the devnet chain spec (same file the ckb node was `ckb init --chain dev`'d with).
+  chain: "{{CHAIN_SPEC_PATH}}"
+  # Announce our P2P listen addr so peers can dial us (hub sets true; customers usually false).
+  announce_listening_addr: {{ANNOUNCE_LISTENING_ADDR}}
+  listening_addr: "/ip4/127.0.0.1/tcp/{{P2P_PORT}}"
+
+  # Script config rendered from infra/devnet/scripts.json (CLAUDE.md rule 2).
+  scripts:
+    - name: FundingLock
+      script:
+        code_hash: "{{FUNDING_LOCK_CODE_HASH}}"
+        hash_type: "{{FUNDING_LOCK_HASH_TYPE}}"
+        args: "0x"
+      cell_deps: {{FUNDING_LOCK_CELL_DEPS}}
+    - name: CommitmentLock
+      script:
+        code_hash: "{{COMMITMENT_LOCK_CODE_HASH}}"
+        hash_type: "{{COMMITMENT_LOCK_HASH_TYPE}}"
+        args: "0x"
+      cell_deps: {{COMMITMENT_LOCK_CELL_DEPS}}
+
+  # Hub-only auto-accept so customer-initiated opens are accepted without manual acceptance.
+  # (Leave these unset/0 on customer nodes.)
+  open_channel_auto_accept_min_ckb_funding_amount: {{AUTO_ACCEPT_MIN_CKB}}
+  auto_accept_channel_ckb_funding_amount: {{AUTO_ACCEPT_CKB}}
+
+ckb:
+  rpc_url: "http://127.0.0.1:8114"
+
+rpc:
+  # Loopback ONLY (CLAUDE.md rule 11). A non-loopback bind here requires biscuit_public_key
+  # and fnn will refuse to start otherwise — do not work around that guard.
+  listening_addr: "127.0.0.1:{{RPC_PORT}}"

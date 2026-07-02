@@ -1,0 +1,33 @@
+{
+  "name": "fiber-lsp",
+  "version": "0.0.0",
+  "private": true,
+  "description": "LSP (liquidity service provider) + payments API for Fiber Network — accept Fiber payments in one API call.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/api/server.ts",
+    "start": "node dist/api/server.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke": "bash infra/scripts/smoke.sh"
+  },
+  "dependencies": {
+    "@ckb-ccc/fiber": "*",
+    "better-sqlite3": "^11.0.0",
+    "dotenv": "^16.4.0",
+    "fastify": "^5.0.0",
+    "pino": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^20.14.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}
