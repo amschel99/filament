@@ -2,6 +2,8 @@ import Fastify, { type FastifyInstance } from "fastify";
 import { config } from "../config.js";
 import { getDb, type Db } from "../db/index.js";
 import { makeClients, type FiberClient } from "../rpc/index.js";
+import { ChannelMonitor } from "../lsp/index.js";
+import { InvoiceWatcher, WebhookDispatcher } from "../invoices/index.js";
 import { registerRoutes } from "./routes.js";
 
 /**
@@ -13,6 +15,8 @@ export interface ServerDeps {
   hub?: FiberClient;
   receiver?: FiberClient;
   apiKey?: string; // when set, requests must carry a matching x-api-key (health is always open)
+  /** Start the background pollers (channel monitor + invoice watcher + webhook dispatch). */
+  startPollers?: boolean;
 }
 
 export async function buildServer(deps: ServerDeps = {}): Promise<FastifyInstance> {
@@ -30,12 +34,30 @@ export async function buildServer(deps: ServerDeps = {}): Promise<FastifyInstanc
   });
 
   await registerRoutes(app, { db, hub, receiver });
+
+  if (deps.startPollers) {
+    // Observed-state pollers (CLAUDE.md rule 4): the monitor reconciles channels, the watcher
+    // flips invoices to PAID/RECEIVED from get_invoice and dispatches webhooks.
+    const monitor = new ChannelMonitor(hub, db, config.pollers.channelMonitorMs);
+    const dispatcher = new WebhookDispatcher(db, {
+      maxAttempts: config.webhooks.maxAttempts,
+      backoffBaseMs: config.webhooks.backoffBaseMs,
+    });
+    const watcher = new InvoiceWatcher(receiver, db, dispatcher, config.pollers.invoiceWatchMs);
+    monitor.start();
+    watcher.start();
+    app.addHook("onClose", async () => {
+      monitor.stop();
+      watcher.stop();
+    });
+  }
+
   return app;
 }
 
 // Direct-run entrypoint.
 if (import.meta.url === `file://${process.argv[1]}`) {
-  buildServer()
+  buildServer({ startPollers: true })
     .then((app) => app.listen({ port: config.api.port, host: "127.0.0.1" }))
     .catch((err) => {
       // eslint-disable-next-line no-console

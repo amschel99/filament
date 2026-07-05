@@ -1,4 +1,4 @@
-import type { FiberClient, Hex } from "../rpc/index.js";
+import type { FiberClient, Hex, UdtScript } from "../rpc/index.js";
 import { generatePreimage, paymentHashFromPreimage, shannonToHex } from "../rpc/index.js";
 import type { Db } from "../db/index.js";
 import { now } from "../db/index.js";
@@ -17,6 +17,11 @@ export interface CreateInvoiceInput {
   webhookSecret?: string;
   /** Hold invoice: node gets payment_hash only; settlement deferred to settle_invoice. */
   hold?: boolean;
+  /**
+   * Denominate the invoice in a UDT stablecoin (e.g. fUSD on devnet, RUSD on mainnet) instead of
+   * CKB. `amountShannons` is then the raw UDT amount (integer units), not shannons.
+   */
+  udtTypeScript?: UdtScript;
 }
 
 export interface CreateInvoiceResult {
@@ -61,6 +66,7 @@ export class InvoiceService {
       currency: "Fibd", // verify against rc5 (CLAUDE.md quick ref)
       ...(input.hold ? { payment_hash: holdHash } : { payment_preimage: preimage }),
       ...(input.expirySeconds ? { expiry: shannonToHex(BigInt(input.expirySeconds)) } : {}),
+      ...(input.udtTypeScript ? { udt_type_script: input.udtTypeScript } : {}),
     });
 
     this.db

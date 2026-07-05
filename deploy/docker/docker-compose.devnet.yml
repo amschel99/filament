@@ -1,0 +1,58 @@
+# Filament — FULL local devnet stack in Docker: ckb + miner + 3 fnn + LSP API.
+#
+# ⚠ Provided as a ready-to-run artifact but NOT verified on the build machine (Docker needs
+#   hardware virtualization, which is disabled here). The equivalent stack IS proven natively via
+#   infra/scripts/devnet-windows.sh. Chain init (dev.toml overlay + funding + config gen + fUSD
+#   mint) is done by ./init-devnet.sh into ./devnet-data before `up` (see deploy/README.md).
+services:
+  ckb:
+    image: nervos/ckb:v0.207.0
+    command: run -C /var/lib/ckb --indexer
+    volumes:
+      - ./devnet-data/ckb:/var/lib/ckb
+    ports: ["8114:8114"]
+    restart: unless-stopped
+
+  miner:
+    image: nervos/ckb:v0.207.0
+    command: miner -C /var/lib/ckb
+    volumes:
+      - ./devnet-data/ckb:/var/lib/ckb
+    depends_on: [ckb]
+    restart: unless-stopped
+
+  fnn-hub:
+    build: { context: ., dockerfile: Dockerfile.fnn }
+    environment: [FIBER_SECRET_KEY_PASSWORD=password1, RUST_LOG=info]
+    volumes: ["./devnet-data/nodes/1:/data"]
+    ports: ["8227:8227", "8228:8228"]
+    depends_on: [ckb]
+    restart: unless-stopped
+
+  fnn-customer1:
+    build: { context: ., dockerfile: Dockerfile.fnn }
+    environment: [FIBER_SECRET_KEY_PASSWORD=password2, RUST_LOG=info]
+    volumes: ["./devnet-data/nodes/2:/data"]
+    ports: ["8237:8237", "8238:8238"]
+    depends_on: [ckb]
+    restart: unless-stopped
+
+  fnn-customer2:
+    build: { context: ., dockerfile: Dockerfile.fnn }
+    environment: [FIBER_SECRET_KEY_PASSWORD=password3, RUST_LOG=info]
+    volumes: ["./devnet-data/nodes/3:/data"]
+    ports: ["8247:8247", "8248:8248"]
+    depends_on: [ckb]
+    restart: unless-stopped
+
+  lsp:
+    build: { context: ../.., dockerfile: deploy/docker/Dockerfile.lsp }
+    env_file: [../networks/devnet.env]
+    environment:
+      - HUB_RPC_URL=http://fnn-hub:8227
+      - CUSTOMER1_RPC_URL=http://fnn-customer1:8237
+      - CUSTOMER2_RPC_URL=http://fnn-customer2:8247
+      - CKB_RPC_URL=http://ckb:8114
+    ports: ["3000:3000"]
+    depends_on: [fnn-hub, fnn-customer1, fnn-customer2]
+    restart: unless-stopped

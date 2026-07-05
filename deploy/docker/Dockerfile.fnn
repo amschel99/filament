@@ -1,0 +1,12 @@
+# Fiber Network Node (fnn) v0.9.0-rc5 — Linux. Pulls the pinned release binary (CLAUDE.md rule 1).
+FROM debian:bookworm-slim
+ARG FNN_VERSION=v0.9.0-rc5
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /opt/fnn
+RUN curl -sL "https://github.com/nervosnetwork/fiber/releases/download/${FNN_VERSION}/fnn_${FNN_VERSION}-x86_64-linux.tar.gz" \
+      | tar xz -C /usr/local/bin
+ENV NO_PROXY=127.0.0.1,localhost
+# Config + data dir are mounted at /data; password + RUST_LOG come from the environment.
+WORKDIR /data
+ENTRYPOINT ["fnn", "-c", "/data/config.yml", "-d", "/data"]

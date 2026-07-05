@@ -91,3 +91,6 @@ llm-context/
 Thumbs.db
 Desktop.ini
 $RECYCLE.BIN/
+
+# docker devnet data (generated)
+deploy/docker/devnet-data/

@@ -77,6 +77,13 @@ export interface UpdateChannelParams {
   [k: string]: unknown;
 }
 
+/** A CKB Script — used as a UDT (token) type script to denominate invoices/channels in a token. */
+export interface UdtScript {
+  code_hash: string;
+  hash_type: string; // "data" | "data1" | "data2" | "type"
+  args: string;
+}
+
 export interface NewInvoiceParams {
   amount: Hex;
   description?: string;
@@ -85,6 +92,8 @@ export interface NewInvoiceParams {
   payment_hash?: Hex; // hold invoice: supply hash, omit preimage
   payment_preimage?: Hex; // normal invoice: supply preimage, omit hash
   hash_algorithm?: "ckb_hash" | "sha256";
+  /** Denominate the invoice in a UDT (stablecoin) instead of CKB. Confirmed against rc5. */
+  udt_type_script?: UdtScript;
   [k: string]: unknown;
 }
 

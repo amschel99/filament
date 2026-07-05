@@ -1,0 +1,22 @@
+# Filament — LSP API service (network-agnostic). Reads deploy/networks/<NETWORK>.env.
+# For a full local devnet stack (ckb + miner + 3 fnn + lsp), use docker-compose.devnet.yml.
+#
+# Usage:  NETWORK=testnet docker compose --env-file ../networks/testnet.env up --build
+services:
+  lsp:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.lsp
+    env_file:
+      - ../networks/${NETWORK:-devnet}.env
+    ports:
+      - "${API_PORT:-3000}:3000"
+    # On devnet the fnn nodes run on the host; reach them via host.docker.internal.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - lsp-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  lsp-data:

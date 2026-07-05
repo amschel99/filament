@@ -28,5 +28,28 @@ export const config = {
     maxAttempts: Number(process.env.WEBHOOK_MAX_ATTEMPTS ?? 5),
     backoffBaseMs: Number(process.env.WEBHOOK_BACKOFF_BASE_MS ?? 2000),
   },
+  /**
+   * The UDT stablecoin this LSP denominates in, per network. When STABLECOIN_CODE_HASH is unset,
+   * the service operates in plain CKB. Swap these env values to move between networks:
+   *   devnet  -> fUSD (SIMPLE_UDT minted locally)
+   *   testnet/mainnet -> RUSD (real stablecoin type script; see deploy/networks/*.env)
+   */
+  stablecoin: process.env.STABLECOIN_CODE_HASH
+    ? {
+        name: process.env.STABLECOIN_NAME ?? "USD",
+        symbol: process.env.STABLECOIN_SYMBOL ?? "$",
+        decimals: Number(process.env.STABLECOIN_DECIMALS ?? 8),
+        script: {
+          code_hash: process.env.STABLECOIN_CODE_HASH,
+          hash_type: process.env.STABLECOIN_HASH_TYPE ?? "data2",
+          args: process.env.STABLECOIN_ARGS ?? "0x",
+        },
+        cellDep: {
+          tx_hash: process.env.STABLECOIN_CELLDEP_TX_HASH ?? "0x",
+          index: process.env.STABLECOIN_CELLDEP_INDEX ?? "0x0",
+          dep_type: process.env.STABLECOIN_CELLDEP_DEP_TYPE ?? "code",
+        },
+      }
+    : undefined,
   logLevel: process.env.LOG_LEVEL ?? "info",
 } as const;
