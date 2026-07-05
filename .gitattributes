@@ -1,0 +1,20 @@
+# Normalize line endings. Default: let git handle text, checkout native on Windows.
+* text=auto
+
+# Shell scripts MUST be LF — they run under WSL/Linux (ckb/fnn devnet). CRLF breaks the shebang.
+*.sh text eol=lf
+infra/scripts/* text eol=lf
+
+# YAML configs consumed by fnn: keep LF.
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# TS/JS/JSON/MD: LF everywhere for consistency across the team.
+*.ts text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+# Binary-ish: never touch.
+*.sqlite binary
+*.png binary
