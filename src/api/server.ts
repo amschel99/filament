@@ -1,31 +1,35 @@
-import Fastify from "fastify";
+import Fastify, { type FastifyInstance } from "fastify";
 import { config } from "../config.js";
-import { getDb } from "../db/index.js";
-import { makeClients } from "../rpc/index.js";
+import { getDb, type Db } from "../db/index.js";
+import { makeClients, type FiberClient } from "../rpc/index.js";
 import { registerRoutes } from "./routes.js";
 
 /**
- * Phase 5 — service entrypoint. Boots Fastify, an API-key auth hook, and the routes. The
- * background pollers (ChannelMonitor, InvoiceWatcher) are started here once un-stubbed.
+ * Phase 5 — service entrypoint. Dependencies are injectable so the route suite can drive the app
+ * with fake clients + an in-memory DB via app.inject(); production builds them from config.
  */
-export async function buildServer() {
-  // Fastify uses pino internally; configuring the level here keeps the default logger typing
-  // (injecting a custom pino instance narrows the FastifyInstance generics and breaks route typing).
+export interface ServerDeps {
+  db?: Db;
+  hub?: FiberClient;
+  receiver?: FiberClient;
+  apiKey?: string; // when set, requests must carry a matching x-api-key (health is always open)
+}
+
+export async function buildServer(deps: ServerDeps = {}): Promise<FastifyInstance> {
   const app = Fastify({ logger: { level: config.logLevel } });
-  const db = getDb();
+  const db = deps.db ?? getDb();
   const clients = makeClients();
+  const hub = deps.hub ?? clients.hub;
+  const receiver = deps.receiver ?? clients.customer1;
+  const apiKey = deps.apiKey ?? config.api.apiKey;
 
   // Single static API key on devnet (CLAUDE.md: mandatory to replace before testnet).
   app.addHook("onRequest", async (req, reply) => {
-    if (req.url === "/v1/health") return;
-    if (req.headers["x-api-key"] !== config.api.apiKey) {
-      reply.code(401).send({ error: "unauthorized" });
-    }
+    if (req.url === "/v1/health" || !apiKey) return;
+    if (req.headers["x-api-key"] !== apiKey) reply.code(401).send({ error: "unauthorized" });
   });
 
-  await registerRoutes(app, { db, hub: clients.hub, receiver: clients.customer1 });
-
-  // TODO(Phase 3/4): new ChannelMonitor(...).start(); new InvoiceWatcher(...).start();
+  await registerRoutes(app, { db, hub, receiver });
   return app;
 }
 

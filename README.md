@@ -164,21 +164,34 @@ fiber-lsp/
 
 ## Status & roadmap
 
-Currently a **compiling, tested scaffold**. The RPC unit helpers are real and unit-tested; the
-application modules are phase-tagged skeletons. Build proceeds strictly milestone by milestone —
-nothing starts while the previous milestone is red.
+The application layer is **implemented and tested** against an in-memory fake fnn
+([src/rpc/fake.ts](src/rpc/fake.ts)) — 25 unit + integration tests green. The real devnet isn't
+stood up yet (needs virtualization enabled in firmware for WSL2/Docker); the `test/e2e` suite runs
+the *same* flows against live nodes once it is. Build proceeds strictly milestone by milestone.
 
 | Milestone | Meaning | State |
 |---|---|---|
-| **M1** | Devnet foundation — `smoke.sh` passes end-to-end | ⛔ gates everything |
-| **M2** | Typed RPC client — integration suite green vs live devnet | scaffolded |
-| **M3** | Liquidity — `POST /v1/liquidity` → observed `ChannelReady` in DB | scaffolded |
-| **M4** | Money loop — invoice → pay → webhook. *The product exists here.* | scaffolded |
-| **M5** | Demos — L402 round-trip, multi-hop with routing fee, failure drills | scaffolded |
+| **M1** | Devnet foundation — `smoke.sh` passes end-to-end | ⛔ blocked on firmware virtualization |
+| **M2** | Typed RPC client — suite green (vs fake now, vs live devnet via e2e) | ✅ vs fake · e2e gated |
+| **M3** | Liquidity — provision → observed `ChannelReady` in DB | ✅ implemented + tested (fake) |
+| **M4** | Money loop — invoice → pay → webhook. *The product exists here.* | ✅ implemented + tested (fake) |
+| **M5** | L402 round-trip · multi-hop with routing fee · full API | ✅ implemented + tested (fake) |
 | **M6** | Cold start — `docker compose up` reproduces M1–M5 | not started |
 
-See **[PLAN.md](PLAN.md)** for the detail behind each phase and the risk notes (Phase 1.2 —
-deploying fiber-scripts to devnet — is the stated biggest unknown).
+> "vs fake" means the logic is proven against the in-memory node; it is not yet certified against a
+> real fnn. M1 (a live `smoke.sh` pass) is what promotes ✅-vs-fake to ✅-for-real.
+
+## Testing
+
+```bash
+npm run test:unit    # pure logic: unit conversions, state normalization, webhook HMAC/retry
+npm run test:int     # application logic vs the fake fnn: invoices, liquidity, L402, API, multi-hop
+npm run test:e2e     # RUN_E2E=1; the smoke loop vs a LIVE devnet (needs running nodes)
+npm run check        # typecheck + unit + int (the pre-commit gate)
+```
+
+See **[PLAN.md](PLAN.md)** for the phase detail and risk notes (Phase 1.2 — deploying fiber-scripts
+to devnet — is the stated biggest unknown).
 
 ---
 

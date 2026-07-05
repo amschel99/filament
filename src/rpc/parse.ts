@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import type { Hex } from "./units.js";
 
 /**
@@ -85,4 +85,17 @@ export function normalizeInvoiceStatus(raw: string | undefined | null): InvoiceS
  */
 export function generatePreimage(): Hex {
   return `0x${randomBytes(32).toString("hex")}`;
+}
+
+/**
+ * Derive a payment hash from a preimage, for HOLD invoices (where we must supply the hash up
+ * front and keep the preimage locally until settle_invoice).
+ *
+ * TODO(real fnn): the node's default is ckb_hash = blake2b-256. This uses sha256 as a stand-in
+ * that is self-consistent with the fake node; before hold invoices run against a real devnet
+ * node, switch this to blake2b-256 (or pass hash_algorithm to match) so the hashes agree.
+ */
+export function paymentHashFromPreimage(preimage: Hex): Hex {
+  const bytes = Buffer.from(preimage.slice(2), "hex");
+  return `0x${createHash("sha256").update(bytes).digest("hex")}`;
 }

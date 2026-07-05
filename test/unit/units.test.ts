@@ -7,14 +7,14 @@ import {
   fundingForInbound,
   forwardingFee,
   CHANNEL_RESERVE_CKB,
-} from "../src/rpc/units.js";
+} from "../../src/rpc/units.js";
 import {
   normalizeChannelState,
   ChannelState,
   normalizeInvoiceStatus,
   InvoiceStatus,
   generatePreimage,
-} from "../src/rpc/parse.js";
+} from "../../src/rpc/parse.js";
 
 describe("units", () => {
   it("converts CKB <-> hex shannons round trip", () => {
