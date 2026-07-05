@@ -28,6 +28,15 @@ Scope is devnet only for now. TypeScript service, SQLite for state, Fastify for 
 
 ## Where it stands
 
-Compiles, tests green, committed. Nothing real works yet though. Everything is gated on M1: getting
-the local devnet up with fiber-scripts deployed and one channel opened/paid/closed. That deployment
-step is the hard part and it's next.
+It works on a real devnet now. I got ckb + fnn running natively on Windows (no WSL — virtualization
+is off in firmware, but there are native Windows binaries), initialized a CKB dev chain with the
+fiber lock contracts baked into genesis, funded three fnn nodes, and ran the full loop: opened a
+channel, paid a 100 CKB invoice through it, closed it. Then wired that same loop up as an automated
+e2e test — it passes against the live nodes in ~9s.
+
+So M1 (devnet + open/pay/close) and M2 (typed client vs a live node) are done for real, not just
+against the fake. Along the way the live node caught the rc5 API drift I'd guessed wrong
+(open_channel wants `pubkey`, not `peer_id`) — which is exactly what the version-drift test is for.
+
+Next is wiring the LSP service's own API/liquidity flows to the live nodes (M3/M4 for real, not just
+vs the fake), then the demos.

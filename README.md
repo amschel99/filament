@@ -165,14 +165,15 @@ fiber-lsp/
 ## Status & roadmap
 
 The application layer is **implemented and tested** against an in-memory fake fnn
-([src/rpc/fake.ts](src/rpc/fake.ts)) — 25 unit + integration tests green. The real devnet isn't
-stood up yet (needs virtualization enabled in firmware for WSL2/Docker); the `test/e2e` suite runs
-the *same* flows against live nodes once it is. Build proceeds strictly milestone by milestone.
+([src/rpc/fake.ts](src/rpc/fake.ts)) — 25 unit + integration tests green — **and the core
+open/pay/close loop is verified against a real CKB devnet** with live fnn v0.9.0-rc5 nodes running
+natively on Windows (see [infra/DEVNET-WINDOWS.md](infra/DEVNET-WINDOWS.md)). The `test/e2e` suite
+runs that loop against the live nodes and passes. Build proceeds strictly milestone by milestone.
 
 | Milestone | Meaning | State |
 |---|---|---|
-| **M1** | Devnet foundation — `smoke.sh` passes end-to-end | ⛔ blocked on firmware virtualization |
-| **M2** | Typed RPC client — suite green (vs fake now, vs live devnet via e2e) | ✅ vs fake · e2e gated |
+| **M1** | Devnet foundation — open/pay/close on a live CKB devnet | ✅ **real** (native Windows, no WSL) |
+| **M2** | Typed RPC client — suite green vs a live fnn rc5 node | ✅ **real** (e2e passes; caught rc5 drift) |
 | **M3** | Liquidity — provision → observed `ChannelReady` in DB | ✅ implemented + tested (fake) |
 | **M4** | Money loop — invoice → pay → webhook. *The product exists here.* | ✅ implemented + tested (fake) |
 | **M5** | L402 round-trip · multi-hop with routing fee · full API | ✅ implemented + tested (fake) |

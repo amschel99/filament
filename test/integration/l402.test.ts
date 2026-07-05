@@ -47,7 +47,7 @@ describe("L402 gate (M5)", () => {
     expect(challenge.headers["www-authenticate"]).toContain("L402");
 
     // 2. buyer pays the invoice over an open channel.
-    await buyer.openChannel({ peer_id: merchant.nodeId, funding_amount: ckbToShannonHex(500n) });
+    await buyer.openChannel({ pubkey: merchant.nodeId, funding_amount: ckbToShannonHex(500n) });
     net.mine();
     const pay = await buyer.sendPayment({ invoice: invoiceAddr });
     expect(pay.status).toBe("Success");

@@ -99,7 +99,7 @@ export class FakeFiberNetwork {
       channelId: `0x${randomBytes(32).toString("hex")}` as Hex,
       tempChannelId: tempId,
       a: from,
-      b: params.peer_id,
+      b: params.pubkey,
       aBalance: funding - RESERVE, // opener holds the usable liquidity initially
       bBalance: 0n,
       state: "NegotiatingFunding",
@@ -316,7 +316,7 @@ export class FakeFiberClient implements FiberClient {
   }
 
   async nodeInfo(): Promise<NodeInfo> {
-    return { node_id: this.nodeId as Hex, node_name: this.name, addresses: ["/ip4/127.0.0.1/tcp/0"] };
+    return { pubkey: this.nodeId, node_name: this.name, addresses: ["/ip4/127.0.0.1/tcp/0"] };
   }
   async connectPeer(params: { address: string }): Promise<void> {
     this.net._connect(this.nodeId, params.address);

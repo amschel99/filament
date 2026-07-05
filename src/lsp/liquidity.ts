@@ -49,7 +49,7 @@ export class LiquidityService {
     try {
       if (req.nodeAddress) await this.hub.connectPeer({ address: req.nodeAddress });
       const opened = await this.hub.openChannel({
-        peer_id: req.nodePubkey,
+        pubkey: req.nodePubkey,
         funding_amount: ckbToShannonHex(fundingCkb),
         public: true,
       });

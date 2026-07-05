@@ -47,13 +47,16 @@ export interface FiberClient {
 
 export interface NodeInfo {
   node_name?: string;
-  node_id?: Hex; // pubkey (v0.8.0 renamed peer_id -> pubkey)
+  // Confirmed against fnn v0.9.0-rc5: node_info returns `pubkey` (hex, NO 0x prefix),
+  // not node_id/peer_id (the v0.8.0 rename CLAUDE.md rule 1 warned about).
+  pubkey?: string;
   addresses?: string[];
   [k: string]: unknown;
 }
 
 export interface OpenChannelParams {
-  peer_id: string;
+  // Confirmed against rc5: open_channel takes `pubkey`, not `peer_id`.
+  pubkey: string;
   funding_amount: Hex;
   public?: boolean;
   funding_udt_type_script?: unknown;

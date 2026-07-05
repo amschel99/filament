@@ -75,7 +75,7 @@ describe("public API (M5)", () => {
   });
 
   it("pays out an invoice over an open channel", async () => {
-    await hub.openChannel({ peer_id: merchant.nodeId, funding_amount: ckbToShannonHex(500n) });
+    await hub.openChannel({ pubkey: merchant.nodeId, funding_amount: ckbToShannonHex(500n) });
     net.mine();
     const inv = await merchant.newInvoice({ amount: ckbToShannonHex(10n), currency: "Fibd" });
 

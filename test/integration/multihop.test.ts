@@ -14,8 +14,8 @@ describe("multi-hop payment through hub (Phase 6)", () => {
     const buyer = net.client("customer2");
 
     // Buyer funds outbound to the hub; hub funds outbound to the merchant. Route: buyer -> hub -> merchant.
-    await buyer.openChannel({ peer_id: hub.nodeId, funding_amount: ckbToShannonHex(500n) });
-    await hub.openChannel({ peer_id: merchant.nodeId, funding_amount: ckbToShannonHex(500n) });
+    await buyer.openChannel({ pubkey: hub.nodeId, funding_amount: ckbToShannonHex(500n) });
+    await hub.openChannel({ pubkey: merchant.nodeId, funding_amount: ckbToShannonHex(500n) });
     net.mine();
 
     const inv = await merchant.newInvoice({ amount: ckbToShannonHex(100n), currency: "Fibd" });
@@ -33,7 +33,7 @@ describe("multi-hop payment through hub (Phase 6)", () => {
     const net = new FakeFiberNetwork();
     const hub = net.client("hub");
     const merchant = net.client("customer1");
-    await hub.openChannel({ peer_id: merchant.nodeId, funding_amount: ckbToShannonHex(500n) });
+    await hub.openChannel({ pubkey: merchant.nodeId, funding_amount: ckbToShannonHex(500n) });
     net.mine();
 
     const inv = await merchant.newInvoice({ amount: ckbToShannonHex(100n), currency: "Fibd" });

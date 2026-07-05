@@ -29,7 +29,7 @@ describe("invoice money loop (M4)", () => {
   });
 
   async function openBuyerChannel() {
-    await buyer.openChannel({ peer_id: merchant.nodeId, funding_amount: ckbToShannonHex(500n), public: true });
+    await buyer.openChannel({ pubkey: merchant.nodeId, funding_amount: ckbToShannonHex(500n), public: true });
     net.mine(); // confirmations land -> ChannelReady
   }
 
