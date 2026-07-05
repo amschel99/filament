@@ -48,11 +48,17 @@ export class LiquidityService {
 
     try {
       if (req.nodeAddress) await this.hub.connectPeer({ address: req.nodeAddress });
-      const opened = await this.hub.openChannel({
-        pubkey: req.nodePubkey,
-        funding_amount: ckbToShannonHex(fundingCkb),
-        public: true,
-      });
+      // connect_peer returning does NOT mean the p2p handshake is done; open_channel races it and
+      // fails if the peer isn't connected yet. Retry a few times before giving up.
+      const opened = await withRetry(
+        () =>
+          this.hub.openChannel({
+            pubkey: req.nodePubkey,
+            funding_amount: ckbToShannonHex(fundingCkb),
+            public: true,
+          }),
+        { attempts: 5, delayMs: 1500 },
+      );
       this.db
         .prepare(`UPDATE channels SET temp_channel_id = ?, updated_at = ? WHERE request_id = ?`)
         .run(opened.temporary_channel_id, now(), requestId);
@@ -68,4 +74,17 @@ export class LiquidityService {
   status(requestId: string) {
     return this.db.prepare(`SELECT * FROM channels WHERE request_id = ?`).get(requestId);
   }
+}
+
+async function withRetry<T>(fn: () => Promise<T>, opts: { attempts: number; delayMs: number }): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < opts.attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      if (i < opts.attempts - 1) await new Promise((r) => setTimeout(r, opts.delayMs));
+    }
+  }
+  throw lastErr;
 }

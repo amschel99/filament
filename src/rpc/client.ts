@@ -96,8 +96,17 @@ export class RawFiberClient implements FiberClient {
     return this.invoke("accept_channel", params);
   }
 
-  newInvoice(params: NewInvoiceParams): Promise<{ invoice_address: string; payment_hash: Hex }> {
-    return this.invoke("new_invoice", params);
+  async newInvoice(params: NewInvoiceParams): Promise<{ invoice_address: string; payment_hash: Hex }> {
+    // rc5 shape: new_invoice returns { invoice_address, invoice: { data: { payment_hash } } }.
+    // Normalize to a flat { invoice_address, payment_hash } at the boundary (CLAUDE.md rule 10).
+    const res = await this.invoke<{
+      invoice_address: string;
+      payment_hash?: Hex;
+      invoice?: { data?: { payment_hash?: Hex } };
+    }>("new_invoice", params);
+    const payment_hash = res.payment_hash ?? res.invoice?.data?.payment_hash;
+    if (!payment_hash) throw new RpcError("new_invoice", 0, "response had no payment_hash", res);
+    return { invoice_address: res.invoice_address, payment_hash };
   }
   getInvoice(params: { payment_hash: Hex }): Promise<RawInvoice> {
     return this.invoke("get_invoice", params);

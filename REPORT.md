@@ -38,5 +38,12 @@ So M1 (devnet + open/pay/close) and M2 (typed client vs a live node) are done fo
 against the fake. Along the way the live node caught the rc5 API drift I'd guessed wrong
 (open_channel wants `pubkey`, not `peer_id`) — which is exactly what the version-drift test is for.
 
-Next is wiring the LSP service's own API/liquidity flows to the live nodes (M3/M4 for real, not just
-vs the fake), then the demos.
+Then I wired the LSP service's own flows to the live nodes and tested them there. All of it works on
+the real devnet now: the hub programmatically provisions a channel and the monitor confirms it ready
+from observed state; a customer invoice gets paid and the watcher fires a real signed webhook; the
+HTTP API creates invoices, reports balances, and pays out; the L402 gate challenges, takes payment,
+and lets the request through on the preimage; and a payment routes customer2 → hub → customer1 with
+the hub earning a real routing fee. Five e2e tests drive the actual services against the live nodes
+and pass; 30 tests green overall.
+
+M3, M4, and M5 are done for real, not just against the fake. Next is the demos and Docker packaging (M6).

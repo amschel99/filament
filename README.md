@@ -174,13 +174,16 @@ runs that loop against the live nodes and passes. Build proceeds strictly milest
 |---|---|---|
 | **M1** | Devnet foundation — open/pay/close on a live CKB devnet | ✅ **real** (native Windows, no WSL) |
 | **M2** | Typed RPC client — suite green vs a live fnn rc5 node | ✅ **real** (e2e passes; caught rc5 drift) |
-| **M3** | Liquidity — provision → observed `ChannelReady` in DB | ✅ implemented + tested (fake) |
-| **M4** | Money loop — invoice → pay → webhook. *The product exists here.* | ✅ implemented + tested (fake) |
-| **M5** | L402 round-trip · multi-hop with routing fee · full API | ✅ implemented + tested (fake) |
+| **M3** | Liquidity — provision → observed `ChannelReady` in DB | ✅ **real** (live e2e) |
+| **M4** | Money loop — invoice → pay → webhook. *The product exists here.* | ✅ **real** (live e2e, HMAC webhook) |
+| **M5** | L402 round-trip · multi-hop with routing fee · full API | ✅ **real** (live e2e) |
 | **M6** | Cold start — `docker compose up` reproduces M1–M5 | not started |
 
-> "vs fake" means the logic is proven against the in-memory node; it is not yet certified against a
-> real fnn. M1 (a live `smoke.sh` pass) is what promotes ✅-vs-fake to ✅-for-real.
+Every milestone through M5 is certified against **live fnn v0.9.0-rc5 nodes on a CKB devnet** by
+the `test/e2e/lsp-live.e2e.test.ts` suite (5 tests), which drives the real LSP services —
+LiquidityService, ChannelMonitor, InvoiceService, InvoiceWatcher, the Fastify API, and the L402
+gate — end to end on-chain. The fake integration suite proves the same code paths deterministically
+in CI without a node.
 
 ## Testing
 

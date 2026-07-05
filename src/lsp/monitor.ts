@@ -23,8 +23,7 @@ const STATE_MAP: Record<ChannelState, string> = {
 
 interface ObservedChannel {
   channel_id?: string;
-  temporary_channel_id?: string;
-  peer_id?: string;
+  pubkey?: string; // peer pubkey (rc5: list_channels exposes `pubkey`, and NO temporary id)
   state?: { state_name?: string } | string;
   local_balance?: string;
   remote_balance?: string;
@@ -58,12 +57,17 @@ export class ChannelMonitor {
       const rawName = typeof ch.state === "string" ? ch.state : ch.state?.state_name;
       const dbState = STATE_MAP[normalizeChannelState(rawName)];
 
-      // Match a tracked row: first by permanent channel_id, else by the temp id from provision.
+      // Match a tracked row. list_channels has the permanent channel_id from the start (no temp
+      // id), so bind by channel_id once known, else adopt the first still-provisioning row for
+      // this peer pubkey.
       const row = this.db
         .prepare(
-          `SELECT id FROM channels WHERE channel_id = ? OR (channel_id IS NULL AND temp_channel_id = ?)`,
+          `SELECT id FROM channels
+             WHERE channel_id = ?
+                OR (channel_id IS NULL AND state = 'PROVISIONING' AND peer_pubkey = ?)
+             LIMIT 1`,
         )
-        .get(ch.channel_id ?? "", ch.temporary_channel_id ?? "") as { id: number } | undefined;
+        .get(ch.channel_id ?? "", ch.pubkey ?? "") as { id: number } | undefined;
       if (!row) continue; // a channel we didn't provision (e.g. inbound) — ignored in v0
 
       const res = this.db

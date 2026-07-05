@@ -117,7 +117,7 @@ export class FakeFiberNetwork {
         return {
           channel_id: c.channelId,
           temporary_channel_id: c.tempChannelId,
-          peer_id: isA ? c.b : c.a,
+          pubkey: isA ? c.b : c.a, // peer pubkey, matching the real list_channels field
           state: { state_name: c.state },
           local_balance: shannonToHex(isA ? c.aBalance : c.bBalance),
           remote_balance: shannonToHex(isA ? c.bBalance : c.aBalance),
