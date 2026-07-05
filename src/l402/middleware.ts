@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { InvoiceService } from "../invoices/index.js";
+import type { UdtScript } from "../rpc/index.js";
 import type { Db } from "../db/index.js";
 
 /**
@@ -9,13 +10,17 @@ import type { Db } from "../db/index.js";
  *   2. Client pays, retries with the preimage in the Authorization header.
  *   3. Middleware verifies preimage against the paid-invoice record in the DB -> request passes.
  *
- * STATUS: skeleton — the gate structure is real; wire verification once Phase 4 marks invoices
- * PAID from observed node state.
+ * Verified live on devnet: an agent pays $0.05 fUSD, then the preimage admits the request
+ * (see examples/paid-api-demo).
  */
 export interface L402Options {
   priceShannons: bigint;
   invoices: InvoiceService;
   db: Db;
+  /** Charge per call in a UDT stablecoin (fUSD/RUSD) instead of CKB. */
+  udtTypeScript?: UdtScript;
+  /** Human label for the challenge (e.g. "$0.05 per call"). */
+  description?: string;
 }
 
 const AUTH_SCHEME = "L402";
@@ -31,7 +36,8 @@ export function l402Guard(opts: L402Options) {
     // No / invalid proof: mint a fresh invoice and challenge with 402.
     const invoice = await opts.invoices.create({
       amountShannons: opts.priceShannons,
-      description: "L402 access",
+      description: opts.description ?? "L402 access",
+      ...(opts.udtTypeScript ? { udtTypeScript: opts.udtTypeScript } : {}),
     });
     reply
       .code(402)

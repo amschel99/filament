@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Filament · L402 — pay-per-call for agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b0906;--bg2:#120d08;--ink:#f2e6d2;--ink-dim:#a9967c;--ember:#f6b25a;--ember-hot:#ffd08a;
+    --ember-deep:#c9761f;--line:#2a2015;--ok:#7bd88f;--blue:#8ab4d8;
+    --serif:"Fraunces",Georgia,serif;--sans:"Hanken Grotesk",system-ui,sans-serif;--mono:"JetBrains Mono",monospace;
+  }
+  *{box-sizing:border-box} html,body{margin:0;min-height:100%}
+  body{font-family:var(--sans);color:var(--ink);background:var(--bg);
+    background-image:radial-gradient(120% 90% at 82% -10%,rgba(246,178,90,.13),transparent 55%),radial-gradient(80% 60% at 5% 110%,rgba(201,118,31,.09),transparent 60%);
+    -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:99;opacity:.05;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
+  .wrap{max-width:1140px;margin:0 auto;padding:34px 28px 80px;position:relative;z-index:1}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:64px}
+  .brand{display:flex;align-items:center;gap:12px;font-family:var(--serif);font-weight:600;font-size:20px}
+  .bulb{width:11px;height:11px;border-radius:50%;background:var(--ember);box-shadow:0 0 8px 2px rgba(246,178,90,.8),0 0 22px 6px rgba(246,178,90,.45);animation:flicker 3.5s infinite}
+  @keyframes flicker{0%,100%{opacity:1}45%{opacity:.72}47%{opacity:1}70%{opacity:.85}}
+  nav{font-size:13px;color:var(--ink-dim);letter-spacing:.06em;text-transform:uppercase}nav b{color:var(--ember)}
+  .hero{display:grid;grid-template-columns:.92fr 1.08fr;gap:52px;align-items:start}
+  @media(max-width:860px){.hero{grid-template-columns:1fr;gap:34px}header{margin-bottom:38px}}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--ember-deep);margin:6px 0 18px}
+  h1{font-family:var(--serif);font-weight:500;font-size:clamp(38px,5vw,60px);line-height:1;margin:0 0 22px;letter-spacing:-.015em}
+  h1 em{font-style:italic;color:var(--ember)}
+  .lede{font-size:16.5px;line-height:1.6;color:var(--ink-dim);max-width:42ch;margin:0 0 26px}
+  .lede b{color:var(--ink);font-weight:500}
+  .specs{display:flex;gap:24px;font-size:13px;color:var(--ink-dim);border-top:1px solid var(--line);padding-top:18px;max-width:42ch}
+  .specs div span{display:block;color:var(--ember);font-family:var(--mono);font-size:14px;margin-top:3px}
+
+  .panel{background:linear-gradient(180deg,var(--bg2),#0a0705);border:1px solid var(--line);border-radius:18px;overflow:hidden;
+    box-shadow:0 40px 80px -40px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,220,170,.05)}
+  .bar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--ink-dim)}
+  .bar .d{width:10px;height:10px;border-radius:50%;background:#2c2216}
+  .bar b{margin-left:auto;color:var(--ember-deep)}
+  .console{font-family:var(--mono);font-size:12.5px;line-height:1.85;padding:16px;min-height:150px}
+  .ln{opacity:0;transform:translateY(4px);animation:in .3s forwards}
+  @keyframes in{to{opacity:1;transform:none}}
+  .ln .req{color:var(--ember)} .ln .res402{color:#e8a24a} .ln .ok{color:var(--ok)} .ln .dim{color:var(--ink-dim)} .ln .pay{color:var(--blue)}
+  .arrow{color:var(--ink-dim)}
+
+  .data{margin:0 16px 16px;border:1px solid var(--line);border-radius:12px;background:#0a0705;position:relative;overflow:hidden}
+  .data .lockrow{display:flex;align-items:center;gap:10px;padding:16px;color:var(--ink-dim);font-size:13.5px}
+  .data.locked .payload{filter:blur(7px);opacity:.5;user-select:none}
+  .data .payload{padding:16px;font-family:var(--mono);font-size:12.5px;line-height:1.8;transition:filter .6s,opacity .6s}
+  .data .payload .k{color:var(--ember-deep)} .data .payload .v{color:var(--ink)} .data .payload .n{color:var(--ok)}
+  .data.unlocked{border-color:rgba(123,216,143,.4);box-shadow:0 0 26px -6px rgba(123,216,143,.25)}
+  .data.unlocked .lockrow{color:var(--ok)}
+  .seal{position:absolute;top:12px;right:14px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;padding:4px 9px;border-radius:20px}
+  .seal.lock{color:var(--ember-deep);border:1px solid var(--line)}
+  .seal.unlock{color:var(--ok);border:1px solid rgba(123,216,143,.4)}
+
+  .act{padding:16px}
+  .btn{width:100%;border:0;cursor:pointer;font-family:var(--sans);font-weight:600;font-size:15px;padding:15px;border-radius:11px;color:#1a1005;
+    background:linear-gradient(180deg,var(--ember-hot),var(--ember));box-shadow:0 0 0 1px rgba(255,220,170,.4),0 12px 30px -10px rgba(246,178,90,.6);transition:transform .12s,filter .2s}
+  .btn:hover{filter:brightness(1.06);transform:translateY(-1px)}.btn:disabled{opacity:.5;cursor:not-allowed;filter:grayscale(.4)}
+  .foot{margin-top:56px;color:var(--ink-dim);font-size:12.5px;line-height:1.7;max-width:64ch}.foot code{font-family:var(--mono);color:var(--ember-deep)}
+  .boot{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:50;transition:opacity .6s}.boot.hide{opacity:0;pointer-events:none}
+  .boot .b{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--ink-dim);display:flex;align-items:center;gap:14px}
+</style>
+</head>
+<body>
+  <div class="boot" id="boot"><div class="b"><span class="bulb"></span> warming the filament…</div></div>
+  <div class="wrap">
+    <header>
+      <div class="brand"><span class="bulb"></span> Filament · L402</div>
+      <nav>pay-per-call · <b>fUSD</b></nav>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">machine payments</p>
+        <h1>An agent that pays its <em>own</em> way.</h1>
+        <p class="lede">No API keys, no accounts, no monthly bill. The endpoint answers <b>402 Payment Required</b> with a Fiber invoice; the agent pays <b>$0.05 in a stablecoin</b>, and the same request goes through — settled in under a second, per call.</p>
+        <div class="specs">
+          <div>Price<span>$0.05 / call</span></div>
+          <div>Auth<span>L402 preimage</span></div>
+          <div>Rail<span>fUSD over Fiber</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="bar"><span class="d"></span><span class="d"></span><span class="d"></span> agent → data.filament.dev <b id="price">$0.05/call</b></div>
+        <div class="console" id="log"></div>
+        <div class="data locked" id="data">
+          <div class="lockrow"><span id="lockicon">🔒</span> <span id="lockText">Premium signal — payment required</span><span class="seal lock" id="seal">LOCKED</span></div>
+          <div class="payload" id="payload">{
+  "signal": "••••••••••••••••",
+  "score": "••••",
+  "regime": "••••••",
+  "note": "••••••••••••••••••••••••••••"
+}</div>
+        </div>
+        <div class="act"><button class="btn" id="run">Run agent →</button></div>
+      </div>
+    </section>
+
+    <p class="foot">Live L402 demo. <code>GET /api/data</code> is wrapped by Filament’s L402 middleware: an unpaid request returns <code>402</code> with a fresh fUSD invoice; the agent pays it (routed through the hub), learns the preimage, and retries with <code>Authorization: L402 &lt;preimage&gt;</code> — the middleware checks it against the paid-invoice record and lets the request through. Running against a real CKB devnet; swap fUSD for RUSD on mainnet.</p>
+  </div>
+
+<script>
+const $=s=>document.querySelector(s); let log=$("#log"), n=0;
+function line(html){ const d=document.createElement("div"); d.className="ln"; d.style.animationDelay=(n++*40)+"ms"; d.innerHTML=html; log.appendChild(d); return d; }
+async function waitReady(){ for(let i=0;i<120;i++){ try{ const r=await (await fetch("/api/ready")).json(); if(r.ready){ $("#boot").classList.add("hide"); $("#price").textContent="$"+r.priceUsd.toFixed(2)+"/call"; return;} if(r.error){ $("#boot").querySelector(".b").innerHTML="⚠ "+r.error; return;} }catch{} await new Promise(r=>setTimeout(r,1000)); } }
+waitReady();
+
+$("#run").addEventListener("click", run);
+async function run(){
+  const b=$("#run"); b.disabled=true; b.textContent="running…"; log.innerHTML=""; n=0;
+  const data=$("#data"); data.className="data locked"; $("#seal").className="seal lock"; $("#seal").textContent="LOCKED"; $("#lockicon").textContent="🔒"; $("#lockText").textContent="Premium signal — payment required";
+  try{
+    line('<span class="req">GET</span> /api/data <span class="dim">— no auth</span>');
+    const r1=await fetch("/api/data"); const j1=await r1.json();
+    await sleep(500);
+    line('<span class="arrow">←</span> <span class="res402">402 Payment Required</span> <span class="dim">'+j1.invoice.slice(0,26)+'…</span>');
+    line('<span class="dim">   challenge:</span> pay <span class="pay">$0.05 fUSD</span> to unlock');
+    await sleep(650);
+    line('<span class="pay">agent</span> paying invoice <span class="dim">(routed customer2 → hub → provider)…</span>');
+    const pay=await (await fetch("/api/pay",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({invoice:j1.invoice})})).json();
+    if(pay.status!=="Success"||!pay.preimage) throw new Error("payment failed: "+pay.status);
+    await sleep(400);
+    line('<span class="ok">✓ payment Success</span> <span class="dim">· preimage acquired</span> '+pay.preimage.slice(0,14)+'…');
+    await sleep(400);
+    line('<span class="req">GET</span> /api/data <span class="dim">— Authorization: L402 &lt;preimage&gt;</span>');
+    const r2=await fetch("/api/data",{headers:{authorization:"L402 "+pay.preimage}}); const j2=await r2.json();
+    await sleep(350);
+    line('<span class="arrow">←</span> <span class="ok">200 OK</span> <span class="dim">— unlocked</span>');
+    reveal(j2);
+  }catch(e){ line('<span class="res402">error</span> <span class="dim">'+e.message+'</span>'); }
+  finally{ b.disabled=false; b.textContent="Run again →"; }
+}
+function reveal(d){
+  const data=$("#data"); data.className="data unlocked"; $("#seal").className="seal unlock"; $("#seal").textContent="UNLOCKED"; $("#lockicon").textContent="🔓"; $("#lockText").textContent="Premium signal — paid";
+  $("#payload").innerHTML='{\n  <span class="k">"signal"</span>: <span class="v">"'+d.signal+'"</span>,\n  <span class="k">"score"</span>: <span class="n">'+d.score+'</span>,\n  <span class="k">"regime"</span>: <span class="v">"'+d.regime+'"</span>,\n  <span class="k">"updated"</span>: <span class="v">"'+d.updated+'"</span>,\n  <span class="k">"note"</span>: <span class="v">"'+d.note+'"</span>\n}';
+}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+</script>
+</body>
+</html>
